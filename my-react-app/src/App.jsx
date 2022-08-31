@@ -14,6 +14,7 @@ import StudentsEnrolled from './pages/educator/StudentsEnrolled'
 import Navbar from './components/student/Navbar'
 import "quill/dist/quill.snow.css";
 import {ToastContainer} from 'react-toastify'
+import LoadingRedirect from './pages/student/LoadingRedirect'
 const App = () => {
   const isEducatorPage = useMatch('/educator/*')
   return (
@@ -27,7 +28,7 @@ const App = () => {
         <Route path='/course/:id' element={<CourseDetalis />} />
         <Route path='/my-enrollments' element={<MyEnrollments />} />
         <Route path='/player/:courseId' element={<Player />} />
-        <Route path='/loading/:path' element={<Loading />} />
+        <Route path="/loading/my-enrollments" element={<LoadingRedirect />} />
         <Route path='/educator' element={<Educator />}>
           <Route path='/educator' element={<DashBoard />} />
           <Route path='add-course' element={<AddCourse />} />

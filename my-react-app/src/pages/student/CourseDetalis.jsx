@@ -16,11 +16,8 @@ const CourseDetalis = () => {
   const [hideSections, setHideSections] = useState({})
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false)
   const [player, setPlayer] = useState(null)
-  const { averageRating, TotalNumberOfLectures, totalDurationTime, totalChapterTime, backendUrl, userData, getToken } = useContext(appContext)
+  const { averageRating, TotalNumberOfLectures, totalDurationTime, totalChapterTime, backendUrl, userData, getToken, enrolledCourses } = useContext(appContext)
   const { user } = useUser()
-  console.log(user);
-
-
 
   const handleSections = (index) => {
     setHideSections(prev => ({
@@ -31,8 +28,6 @@ const CourseDetalis = () => {
   const fetchCourseData = async () => {
     try {
       const { data } = await axios.get(backendUrl + '/api/course/' + id)
-      console.log(data);
-
       if (data.success) {
         setCourse(data.courseData)
       } else {
@@ -55,7 +50,7 @@ const CourseDetalis = () => {
       const { data } = await axios.post(backendUrl + '/api/user/purchase', { courseId: course._id }, { headers: { Authorization: `Bearer ${token}` } })
       if (data.success) {
         const { session_url } = data
-        window.location.replace(session_url, '/my-enrollments')
+        window.location.replace(session_url)
       } else {
         toast.error(data.message)
       }
@@ -67,6 +62,14 @@ const CourseDetalis = () => {
   useEffect(() => {
     fetchCourseData()
   }, [id])
+  useEffect(() => {
+    if (enrolledCourses) {
+      console.log(enrolledCourses);
+      console.log(enrolledCourses[0]?._id);
+      console.log(course?._id);
+
+    }
+  }, [enrolledCourses])
   useEffect(() => {
     if (userData && course) {
       setIsAlreadyEnrolled(userData?.enrolledCourses?.includes(course._id))
@@ -143,39 +146,44 @@ const CourseDetalis = () => {
           {
             player ? <Youtube videoId={player.videoId} opts={{ playerVars: { autoplay: 1 } }} iframeClassName='w-[424px] h-[260px] aspect-video' /> : <img src={course.courseThumbnail} alt="course-courseThumbnail" className='w-[424px]' />
           }
-          <div className='p-4 '>
-            <p className='flex text-red-500 text-[16px] gap-2'><img src={assets.time_left_clock_icon} alt="time_clock_icon"
-            />5 days left at this price!</p>
-            {course.discount ? <p className='flex items-center gap-4 mt-[20px]'> <span className='text-[34px] font-semibold'>
-              ${(course.coursePrice - course.coursePrice * course.discount / 100).toFixed(2)}</span>
-              <span className='text-[18px] text-gray-500'>${course.coursePrice}</span>
-              <span className='text-[18px] text-gray-500'>{course.discount}%off</span></p> : course.coursePrice}
-            <div className='flex gap-5 mt-[20px]'>
-              <div className='flex gap-2'><img src={assets.star} alt="star" />{course?.courseRatings[0]?.rating}</div> |
-              <div className='flex gap-2 text-gray-500'><img src={assets.time_clock_icon} alt="" />{totalDurationTime(course)}
-                <span className='text-black'></span></div> |
-              <div className='flex gap-2 text-gray-500'><img src={assets.lesson_icon} alt="lesson" />{TotalNumberOfLectures(course)}</div>
+          {user && enrolledCourses && enrolledCourses[0]?._id === course?._id ? (
+            <button className='w-[424px]  py-4 text-green-600 mt-3 text-xl font-semibold'>Already Enrolled Go on and complete your course!</button>
+          ) : (
+
+            <div className='p-4 '>
+              <p className='flex text-red-500 text-[16px] gap-2'><img src={assets.time_left_clock_icon} alt="time_clock_icon"
+              />5 days left at this price!</p>
+              {course.discount ? <p className='flex items-center gap-4 mt-[20px]'> <span className='text-[34px] font-semibold'>
+                ${(course.coursePrice - course.coursePrice * course.discount / 100).toFixed(2)}</span>
+                <span className='text-[18px] text-gray-500'>${course.coursePrice}</span>
+                <span className='text-[18px] text-gray-500'>{course.discount}%off</span></p> : course.coursePrice}
+              <div className='flex gap-5 mt-[20px]'>
+                <div className='flex gap-2'><img src={assets.star} alt="star" />{course?.courseRatings[0]?.rating}</div> |
+                <div className='flex gap-2 text-gray-500'><img src={assets.time_clock_icon} alt="" />{totalDurationTime(course)}
+                  <span className='text-black'></span></div> |
+                <div className='flex gap-2 text-gray-500'><img src={assets.lesson_icon} alt="lesson" />{TotalNumberOfLectures(course)}</div>
+              </div>
+              {user && enrolledCourses && (course?.educator._id === user?.id || (enrolledCourses.length > 0 && enrolledCourses[0]?._id === course?._id)) ? (
+                <></>
+              ) : (
+                <button
+                  onClick={enrollCourse}
+                  className="h-[48px] w-[400px] lg:w-full text-white bg-[#4B7BFF] text-[16px] mt-[20px]"
+                >
+                  {isAlreadyEnrolled ? 'Already enrolled' : 'Enroll now'}
+                </button>
+              )}
+              <h1 className='text-[18px] font-medium text-gray-800 mt-[20px]'>What’s in the course?</h1>
+              <ul className='text-gray-500 flex flex-col mt-[10px]'>
+                <li>. Lifetime access with free updates.</li>
+                <li>. Step-by-step, hands-on project guidance.</li>
+                <li>. Downloadable resources and source code.</li>
+                <li>. Quizzes to test your knowledge.</li>
+                <li>. Certificate of completion.</li>
+                <li>. Quizzes to test your knowledge.</li>
+              </ul>
             </div>
-            {user && course.educator._id === user.id ? (
-              <></>
-            ) : (
-              <button
-                onClick={enrollCourse}
-                className="h-[48px] w-[400px] lg:w-full text-white bg-[#4B7BFF] text-[16px] mt-[20px]"
-              >
-                {isAlreadyEnrolled ? 'Already enrolled' : 'Enroll now'}
-              </button>
-            )}
-            <h1 className='text-[18px] font-medium text-gray-800 mt-[20px]'>What’s in the course?</h1>
-            <ul className='text-gray-500 flex flex-col mt-[10px]'>
-              <li>. Lifetime access with free updates.</li>
-              <li>. Step-by-step, hands-on project guidance.</li>
-              <li>. Downloadable resources and source code.</li>
-              <li>. Quizzes to test your knowledge.</li>
-              <li>. Certificate of completion.</li>
-              <li>. Quizzes to test your knowledge.</li>
-            </ul>
-          </div>
+          )}
         </div>
       </div>
       <Footer />

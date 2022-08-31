@@ -102,12 +102,12 @@ export const AppContextProvider = (props) => {
         try {
             const token = await getToken()
             const { data } = await axios.get(backendUrl + '/api/user/enrolled-courses', { headers: { Authorization: `Bearer ${token}` } })
-            console.log(data);
-            
             if (data.success) {
-                setEnrolledCourses(data.enrolledCourses.reverse())
+                setEnrolledCourses(data.enrolledCourses.reverse()) 
+                
             } else {
-                toast.error(data.message)
+                console.log("error occured");
+                
             }
         } catch (error) {
             toast.error(error.message)
